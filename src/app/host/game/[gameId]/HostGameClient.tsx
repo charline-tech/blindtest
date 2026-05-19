@@ -72,11 +72,15 @@ export function HostGameClient({
   const leaderboard = computeLeaderboard(players, answers)
 
   async function openQuestion(q: Question) {
-    await fetch('/api/open-question', {
+    const res = await fetch('/api/open-question', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ gameId, questionId: q.id }),
     })
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}))
+      alert(`Erreur ouverture question : ${data.error ?? res.status}`)
+    }
   }
 
   async function reveal() {
