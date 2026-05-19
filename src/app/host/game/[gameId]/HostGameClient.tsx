@@ -180,7 +180,7 @@ export function HostGameClient({
                     onChange={e => setEditValues(p => ({ ...p, duration_seconds: e.target.value }))}
                     type="number"
                     min="10"
-                    max="120"
+                    max="300"
                     className="bg-zinc-800 border-zinc-600 w-16 h-8 text-sm"
                   />
                   <Button size="sm" onClick={() => saveEdit(q)} className="h-8 px-2">✓</Button>
@@ -225,7 +225,7 @@ export function HostGameClient({
                 onChange={e => setNewQ(p => ({ ...p, duration_seconds: e.target.value }))}
                 type="number"
                 min="10"
-                max="120"
+                max="300"
                 className="bg-zinc-900 border-zinc-700 w-20"
                 placeholder="30"
               />
