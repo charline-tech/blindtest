@@ -11,26 +11,20 @@ export default function Home() {
       className="min-h-screen flex flex-col items-center justify-between p-6 py-10"
       style={{ background: KRAFT }}
     >
-      {/* Top: titre + boutons */}
-      <div className="flex-1 flex flex-col items-center justify-center gap-10 w-full max-w-xs text-center">
-        <div className="space-y-2">
-          <p style={{ fontFamily: 'var(--font-bebas)', fontSize: '0.95rem', letterSpacing: '0.3em', color: RED }}>
-            ✦ LES TRÉSORS DE WALLONIE ✦
-          </p>
-          <div
-            style={{
-              fontFamily: 'var(--font-bebas)',
-              fontSize: '5.5rem',
-              lineHeight: 0.88,
-              color: RED,
-              letterSpacing: '0.02em',
-            }}
-          >
-            BLIND<br />TEST
-          </div>
-          <div style={{ background: RED, display: 'inline-block', padding: '3px 18px', marginTop: '6px' }}>
-            <span style={{ fontFamily: 'var(--font-bebas)', fontSize: '1.05rem', letterSpacing: '0.22em', color: YELLOW }}>
-              L'AVENTURE EN FAMILLE
+      {/* Top: logo + boutons */}
+      <div className="flex-1 flex flex-col items-center justify-center gap-8 w-full max-w-xs text-center">
+        <div className="space-y-3">
+          <Image
+            src="/logos/logo-emission.png"
+            alt="Les Trésors de Wallonie"
+            width={320}
+            height={280}
+            priority
+            style={{ mixBlendMode: 'multiply', objectFit: 'contain', width: '100%', height: 'auto' }}
+          />
+          <div style={{ background: RED, display: 'inline-block', padding: '3px 18px' }}>
+            <span style={{ fontFamily: 'var(--font-bebas)', fontSize: '1.3rem', letterSpacing: '0.25em', color: YELLOW }}>
+              BLIND TEST
             </span>
           </div>
         </div>
