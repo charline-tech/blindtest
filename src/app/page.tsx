@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import Image from 'next/image'
 
 const RED = '#C8232C'
 const YELLOW = '#F5C518'
@@ -7,10 +8,11 @@ const KRAFT = '#F0DEB0'
 export default function Home() {
   return (
     <main
-      className="min-h-screen flex flex-col items-center justify-center p-6"
+      className="min-h-screen flex flex-col items-center justify-between p-6 py-10"
       style={{ background: KRAFT }}
     >
-      <div className="flex flex-col items-center gap-10 w-full max-w-xs text-center">
+      {/* Top: titre + boutons */}
+      <div className="flex-1 flex flex-col items-center justify-center gap-10 w-full max-w-xs text-center">
         <div className="space-y-2">
           <p style={{ fontFamily: 'var(--font-bebas)', fontSize: '0.95rem', letterSpacing: '0.3em', color: RED }}>
             ✦ LES TRÉSORS DE WALLONIE ✦
@@ -62,6 +64,36 @@ export default function Home() {
           >
             ESPACE ADMIN
           </Link>
+        </div>
+      </div>
+
+      {/* Bottom: sponsors */}
+      <div className="w-full max-w-xs mt-10">
+        <p style={{ textAlign: 'center', fontSize: '0.7rem', letterSpacing: '0.2em', color: '#9A7040', marginBottom: '12px', fontWeight: 600 }}>
+          AVEC LE SOUTIEN DE
+        </p>
+        <div className="flex items-center justify-center gap-6">
+          <Image
+            src="/logos/rtbf.png"
+            alt="RTBF"
+            width={80}
+            height={80}
+            style={{ mixBlendMode: 'multiply', objectFit: 'contain' }}
+          />
+          <Image
+            src="/logos/auvio.png"
+            alt="RTBF Auvio"
+            width={110}
+            height={50}
+            style={{ mixBlendMode: 'multiply', objectFit: 'contain' }}
+          />
+          <Image
+            src="/logos/wwp.png"
+            alt="WWP"
+            width={70}
+            height={70}
+            style={{ mixBlendMode: 'multiply', objectFit: 'contain' }}
+          />
         </div>
       </div>
     </main>
