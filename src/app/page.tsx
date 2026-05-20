@@ -63,9 +63,6 @@ export default function Home() {
 
       {/* Bottom: sponsors */}
       <div className="w-full max-w-xs mt-10">
-        <p style={{ textAlign: 'center', fontSize: '0.7rem', letterSpacing: '0.2em', color: '#9A7040', marginBottom: '12px', fontWeight: 600 }}>
-          AVEC LE SOUTIEN DE
-        </p>
         <div className="flex items-center justify-center gap-6">
           <Image
             src="/logos/rtbf.png"
