@@ -36,6 +36,7 @@ export function PlayClient({ gameId, playerId }: { gameId: string; playerId: str
   const [submitting, setSubmitting] = useState(false)
   const [timeLeft, setTimeLeft] = useState<number | null>(null)
   const [playerCount, setPlayerCount] = useState(0)
+  const [finalScore, setFinalScore] = useState<number | null>(null)
 
   const supabase = createClient()
 
@@ -76,6 +77,17 @@ export function PlayClient({ gameId, playerId }: { gameId: string; playerId: str
       .maybeSingle()
       .then(({ data }) => { if (data) setMyAnswer(data) })
   }, [question?.id, playerId])
+
+  useEffect(() => {
+    if (game?.status !== 'finished' || !playerId) return
+    supabase
+      .from('answers')
+      .select('is_correct')
+      .eq('player_id', playerId)
+      .then(({ data }) => {
+        if (data) setFinalScore(data.filter(a => a.is_correct).length)
+      })
+  }, [game?.status, playerId])
 
   useEffect(() => {
     if (game?.status !== 'question_open' || !game.question_opened_at || !question) {
@@ -244,12 +256,22 @@ export function PlayClient({ gameId, playerId }: { gameId: string; playerId: str
         )}
 
         {game.status === 'finished' && (
-          <motion.div key="finished" {...fade} className="text-center space-y-4 pt-10">
-            <div style={{ fontSize: '5rem' }}>🏆</div>
+          <motion.div key="finished" {...fade} className="text-center space-y-5 pt-10">
+            <div style={{ fontSize: '4rem' }}>🏆</div>
             <div style={{ fontFamily: 'var(--font-bebas)', fontSize: '2.8rem', color: RED, letterSpacing: '0.04em', lineHeight: 1 }}>
               PARTIE<br />TERMINÉE !
             </div>
-            <p style={{ color: '#7A5030', fontSize: '0.95rem' }}>
+            {finalScore !== null && (
+              <div className="py-4 px-8 rounded-xl" style={{ background: RED }}>
+                <div style={{ fontFamily: 'var(--font-bebas)', fontSize: '5rem', color: YELLOW, lineHeight: 1 }}>
+                  {finalScore}
+                </div>
+                <div style={{ fontFamily: 'var(--font-bebas)', fontSize: '1.1rem', letterSpacing: '0.12em', color: '#fff' }}>
+                  BONNE{finalScore !== 1 ? 'S' : ''} RÉPONSE{finalScore !== 1 ? 'S' : ''}
+                </div>
+              </div>
+            )}
+            <p style={{ color: '#7A5030', fontSize: '0.85rem' }}>
               Consultez le classement sur le grand écran.
             </p>
           </motion.div>

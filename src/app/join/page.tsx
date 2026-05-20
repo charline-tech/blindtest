@@ -17,6 +17,7 @@ export default function JoinPage() {
   const [lastname, setLastname] = useState('')
   const [email, setEmail] = useState('')
   const [code, setCode] = useState('')
+  const [gdpr, setGdpr] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const router = useRouter()
@@ -50,6 +51,7 @@ export default function JoinPage() {
         firstname: firstname.trim(),
         lastname: lastname.trim(),
         email: email.trim().toLowerCase(),
+        gdpr_accepted_at: new Date().toISOString(),
       })
       .select('id')
       .single()
@@ -139,6 +141,24 @@ export default function JoinPage() {
               required
             />
           </div>
+
+          {/* Case RGPD */}
+          <label className="flex items-start gap-3 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={gdpr}
+              onChange={e => setGdpr(e.target.checked)}
+              required
+              className="mt-1 shrink-0"
+              style={{ width: '18px', height: '18px', accentColor: RED }}
+            />
+            <span style={{ fontSize: '0.78rem', color: LABEL, lineHeight: 1.4 }}>
+              J'accepte que mes données personnelles (prénom, nom, adresse email) soient collectées
+              et utilisées par <strong>Les Trésors de Wallonie</strong> dans le cadre de cet
+              événement et conservées pendant 1 an, conformément au{' '}
+              <strong>RGPD</strong>. Elles ne seront pas transmises à des tiers.
+            </span>
+          </label>
 
           {error && <p className="text-sm font-medium" style={{ color: RED }}>{error}</p>}
 
