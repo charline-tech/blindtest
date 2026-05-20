@@ -1,5 +1,6 @@
 'use client'
 import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -46,7 +47,9 @@ export function HostGameClient({
   const [newQ, setNewQ] = useState({ answer: '', duration_seconds: '30' })
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editValues, setEditValues] = useState({ answer: '', duration_seconds: '' })
+  const [archived, setArchived] = useState(false)
   const supabase = createClient()
+  const router = useRouter()
 
   useEffect(() => {
     supabase.from('players').select('*').eq('game_id', gameId)
@@ -114,11 +117,12 @@ export function HostGameClient({
   }
 
   async function finishGame() {
-    await fetch('/api/archive', {
+    const res = await fetch('/api/archive', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ gameId, leaderboard }),
     })
+    if (res.ok) setArchived(true)
   }
 
   async function toggleOverride(answerId: string, current: boolean) {
@@ -239,8 +243,14 @@ export function HostGameClient({
           {game.status === 'question_open' && (
             <Button onClick={reveal} variant="secondary">Révéler les réponses</Button>
           )}
-          {game.status === 'lobby' && questions.length > 0 && (
+          {game.status === 'lobby' && questions.length > 0 && !archived && (
             <Button onClick={finishGame} variant="destructive">Terminer et archiver</Button>
+          )}
+          {archived && (
+            <div className="flex items-center gap-4">
+              <span className="text-green-400 font-medium">✓ Partie archivée !</span>
+              <Button onClick={() => router.push('/host')}>← Retour au dashboard</Button>
+            </div>
           )}
         </div>
       </div>
