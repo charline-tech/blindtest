@@ -20,7 +20,7 @@ export default function Home() {
             width={320}
             height={280}
             priority
-            style={{ mixBlendMode: 'multiply', objectFit: 'contain', width: '100%', height: 'auto' }}
+            style={{ objectFit: 'contain', width: '100%', height: 'auto' }}
           />
           <div style={{ background: RED, display: 'inline-block', padding: '3px 18px' }}>
             <span style={{ fontFamily: 'var(--font-bebas)', fontSize: '1.3rem', letterSpacing: '0.25em', color: YELLOW }}>
