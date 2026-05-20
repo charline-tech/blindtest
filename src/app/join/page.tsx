@@ -7,7 +7,9 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 
 export default function JoinPage() {
-  const [nickname, setNickname] = useState('')
+  const [firstname, setFirstname] = useState('')
+  const [lastname, setLastname] = useState('')
+  const [email, setEmail] = useState('')
   const [code, setCode] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
@@ -32,14 +34,22 @@ export default function JoinPage() {
       return
     }
 
+    const nickname = `${firstname.trim()} ${lastname.trim()}`
+
     const { data: player, error: insertError } = await supabase
       .from('players')
-      .insert({ game_id: game.id, nickname: nickname.trim() })
+      .insert({
+        game_id: game.id,
+        nickname,
+        firstname: firstname.trim(),
+        lastname: lastname.trim(),
+        email: email.trim().toLowerCase(),
+      })
       .select('id')
       .single()
 
     if (insertError?.code === '23505') {
-      setError('Ce pseudo est déjà pris dans cette partie.')
+      setError('Cette adresse email est déjà utilisée dans cette partie.')
       setLoading(false)
       return
     }
@@ -57,16 +67,42 @@ export default function JoinPage() {
       <div className="w-full max-w-sm space-y-6">
         <h1 className="text-3xl font-black text-center">Rejoindre</h1>
         <form onSubmit={handleJoin} className="space-y-4">
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-2">
+              <Label htmlFor="firstname">Prénom</Label>
+              <Input
+                id="firstname"
+                value={firstname}
+                onChange={e => setFirstname(e.target.value)}
+                placeholder="Marie"
+                maxLength={30}
+                required
+                className="h-12 bg-zinc-900 border-zinc-700"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="lastname">Nom</Label>
+              <Input
+                id="lastname"
+                value={lastname}
+                onChange={e => setLastname(e.target.value)}
+                placeholder="Dupont"
+                maxLength={30}
+                required
+                className="h-12 bg-zinc-900 border-zinc-700"
+              />
+            </div>
+          </div>
           <div className="space-y-2">
-            <Label htmlFor="nickname">Ton pseudo</Label>
+            <Label htmlFor="email">Adresse email</Label>
             <Input
-              id="nickname"
-              value={nickname}
-              onChange={e => setNickname(e.target.value)}
-              placeholder="ex: MusicFan42"
-              maxLength={20}
+              id="email"
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              type="email"
+              placeholder="marie@exemple.com"
               required
-              className="h-14 text-lg bg-zinc-900 border-zinc-700"
+              className="h-12 bg-zinc-900 border-zinc-700"
             />
           </div>
           <div className="space-y-2">
