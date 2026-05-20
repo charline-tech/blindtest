@@ -2,7 +2,6 @@
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 
 type Game = {
@@ -16,6 +15,12 @@ type Question = {
   duration_seconds: number
   order_index: number
 }
+
+const RED = '#C8232C'
+const YELLOW = '#F5C518'
+const KRAFT = '#F0DEB0'
+const DARK = '#1C0A00'
+const INPUT_BORDER = '#C8A060'
 
 const fade = {
   initial: { opacity: 0, y: 20 },
@@ -99,40 +104,80 @@ export function PlayClient({ gameId, playerId }: { gameId: string; playerId: str
 
   if (!playerId)
     return (
-      <main className="min-h-screen flex items-center justify-center bg-zinc-950 text-white">
-        Lien invalide. <a href="/join" className="underline ml-1">Rejoindre</a>
+      <main className="min-h-screen flex items-center justify-center" style={{ background: KRAFT }}>
+        <span style={{ color: DARK }}>Lien invalide. <a href="/join" className="underline" style={{ color: RED }}>Rejoindre</a></span>
       </main>
     )
 
   if (!game)
-    return <main className="min-h-screen flex items-center justify-center bg-zinc-950 text-white">Chargement…</main>
+    return (
+      <main className="min-h-screen flex items-center justify-center" style={{ background: KRAFT }}>
+        <span style={{ fontFamily: 'var(--font-bebas)', fontSize: '1.4rem', letterSpacing: '0.1em', color: RED }}>
+          CHARGEMENT…
+        </span>
+      </main>
+    )
 
   return (
-    <main className="min-h-screen bg-zinc-950 text-white flex flex-col items-center justify-center p-4">
+    <main
+      className="min-h-screen flex flex-col items-center justify-center p-4"
+      style={{ background: KRAFT }}
+    >
+      {/* Brand header strip */}
+      <div className="absolute top-0 left-0 right-0 py-2 text-center" style={{ background: RED }}>
+        <span style={{ fontFamily: 'var(--font-bebas)', fontSize: '1rem', letterSpacing: '0.22em', color: YELLOW }}>
+          LES TRÉSORS DE WALLONIE — BLIND TEST
+        </span>
+      </div>
+
       <AnimatePresence mode="wait">
         {game.status === 'lobby' && (
-          <motion.div key="lobby" {...fade} className="text-center space-y-4">
-            <p className="text-zinc-400 text-lg">En attente du début…</p>
-            <p className="text-zinc-500">
+          <motion.div key="lobby" {...fade} className="text-center space-y-4 pt-10">
+            <div style={{ fontFamily: 'var(--font-bebas)', fontSize: '3rem', lineHeight: 1, color: RED, letterSpacing: '0.05em' }}>
+              EN ATTENTE…
+            </div>
+            <p style={{ color: '#7A5030', fontSize: '1rem' }}>
               {playerCount} joueur{playerCount > 1 ? 's' : ''} connecté{playerCount > 1 ? 's' : ''}
             </p>
+            <div className="mt-4 flex justify-center gap-2">
+              {[0, 1, 2].map(i => (
+                <motion.div
+                  key={i}
+                  className="w-3 h-3 rounded-full"
+                  style={{ background: RED }}
+                  animate={{ opacity: [0.3, 1, 0.3] }}
+                  transition={{ duration: 1.2, repeat: Infinity, delay: i * 0.4 }}
+                />
+              ))}
+            </div>
           </motion.div>
         )}
 
         {game.status === 'question_open' && question && (
-          <motion.div key={`q-${question.id}`} {...fade} className="w-full max-w-sm space-y-6">
+          <motion.div key={`q-${question.id}`} {...fade} className="w-full max-w-sm space-y-6 pt-10">
             <div className="flex justify-between items-center">
-              <span className="text-zinc-400">Question {question.order_index + 1}</span>
+              <span style={{ fontFamily: 'var(--font-bebas)', fontSize: '1.1rem', letterSpacing: '0.1em', color: '#7A5030' }}>
+                QUESTION {question.order_index + 1}
+              </span>
               {timeLeft !== null && (
-                <span className={`text-2xl font-mono font-bold ${timeLeft <= 5 ? 'text-red-400' : 'text-white'}`}>
+                <span
+                  style={{
+                    fontFamily: 'var(--font-bebas)',
+                    fontSize: '2.2rem',
+                    lineHeight: 1,
+                    color: timeLeft <= 5 ? RED : DARK,
+                    letterSpacing: '0.05em',
+                  }}
+                >
                   {timeLeft}s
                 </span>
               )}
             </div>
+
             {myAnswer ? (
-              <div className="text-center space-y-2 py-6">
-                <p className="text-zinc-400">Réponse envoyée :</p>
-                <p className="text-xl font-semibold">« {myAnswer.raw_text} »</p>
+              <div className="text-center py-8 space-y-3 rounded-xl" style={{ background: '#FFF8EC', border: `2px solid ${INPUT_BORDER}` }}>
+                <p style={{ color: '#7A5030', fontSize: '0.9rem', fontWeight: 600 }}>Réponse envoyée :</p>
+                <p style={{ fontSize: '1.25rem', fontWeight: 700, color: DARK }}>« {myAnswer.raw_text} »</p>
               </div>
             ) : (
               <div className="space-y-3">
@@ -141,40 +186,72 @@ export function PlayClient({ gameId, playerId }: { gameId: string; playerId: str
                   onChange={e => setInput(e.target.value)}
                   onKeyDown={e => e.key === 'Enter' && submitAnswer()}
                   placeholder="Votre réponse…"
-                  className="h-16 text-xl bg-zinc-900 border-zinc-700"
+                  className="h-16 text-xl border-2"
+                  style={{ background: '#FFF8EC', borderColor: INPUT_BORDER }}
                   autoFocus
                 />
-                <Button onClick={submitAnswer} className="w-full h-14 text-lg" disabled={submitting}>
-                  {submitting ? 'Envoi…' : 'Envoyer'}
-                </Button>
+                <button
+                  onClick={submitAnswer}
+                  disabled={submitting}
+                  className="w-full h-14 rounded-lg transition-opacity"
+                  style={{
+                    background: RED,
+                    color: YELLOW,
+                    fontFamily: 'var(--font-bebas)',
+                    fontSize: '1.55rem',
+                    letterSpacing: '0.08em',
+                    border: 'none',
+                    cursor: submitting ? 'not-allowed' : 'pointer',
+                    opacity: submitting ? 0.7 : 1,
+                  }}
+                >
+                  {submitting ? 'ENVOI…' : 'ENVOYER'}
+                </button>
               </div>
             )}
           </motion.div>
         )}
 
         {game.status === 'reveal' && question && myAnswer && (
-          <motion.div key={`reveal-${question.id}`} {...fade} className="text-center space-y-6">
-            <p className="text-zinc-400 text-lg">Révélation</p>
-            <div className="text-6xl">{myAnswer.is_correct ? '✅' : '❌'}</div>
-            <p className="text-zinc-300">
+          <motion.div key={`reveal-${question.id}`} {...fade} className="text-center space-y-6 pt-10">
+            <div style={{ fontSize: '5rem', lineHeight: 1 }}>
+              {myAnswer.is_correct ? '✅' : '❌'}
+            </div>
+            <div
+              style={{
+                fontFamily: 'var(--font-bebas)',
+                fontSize: '2rem',
+                color: myAnswer.is_correct ? '#2D7A2D' : RED,
+                letterSpacing: '0.08em',
+              }}
+            >
+              {myAnswer.is_correct ? 'BONNE RÉPONSE !' : 'PAS TOUT À FAIT…'}
+            </div>
+            <p style={{ color: '#7A5030', fontSize: '0.95rem' }}>
               Votre réponse :{' '}
-              <span className="text-white font-semibold">« {myAnswer.raw_text} »</span>
+              <span style={{ fontWeight: 700, color: DARK }}>« {myAnswer.raw_text} »</span>
             </p>
           </motion.div>
         )}
 
         {game.status === 'reveal' && question && !myAnswer && (
-          <motion.div key={`reveal-miss-${question.id}`} {...fade} className="text-center space-y-4">
-            <div className="text-6xl">⏰</div>
-            <p className="text-zinc-400">Pas de réponse envoyée</p>
+          <motion.div key={`reveal-miss-${question.id}`} {...fade} className="text-center space-y-4 pt-10">
+            <div style={{ fontSize: '5rem' }}>⏰</div>
+            <div style={{ fontFamily: 'var(--font-bebas)', fontSize: '1.8rem', color: '#7A5030', letterSpacing: '0.08em' }}>
+              PAS DE RÉPONSE
+            </div>
           </motion.div>
         )}
 
         {game.status === 'finished' && (
-          <motion.div key="finished" {...fade} className="text-center space-y-4">
-            <div className="text-6xl">🏆</div>
-            <h2 className="text-3xl font-black">Partie terminée !</h2>
-            <p className="text-zinc-400">Consultez le classement sur le grand écran.</p>
+          <motion.div key="finished" {...fade} className="text-center space-y-4 pt-10">
+            <div style={{ fontSize: '5rem' }}>🏆</div>
+            <div style={{ fontFamily: 'var(--font-bebas)', fontSize: '2.8rem', color: RED, letterSpacing: '0.04em', lineHeight: 1 }}>
+              PARTIE<br />TERMINÉE !
+            </div>
+            <p style={{ color: '#7A5030', fontSize: '0.95rem' }}>
+              Consultez le classement sur le grand écran.
+            </p>
           </motion.div>
         )}
       </AnimatePresence>
