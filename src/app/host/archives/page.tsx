@@ -59,16 +59,20 @@ export default async function ArchivesPage() {
       {archivesWithPlayers.map(a => {
         const results = a.full_results_json as PlayerResult[]
 
-        // Fusionner joueurs + scores
-        const rows = a.players.map(p => {
-          const result = results.find(r => r.playerId === p.id)
+        // Fusionner joueurs + scores — fallback sur full_results_json si joueurs supprimés
+        const rows = results.map((r, i) => {
+          const player = a.players.find(p => p.id === r.playerId)
           return {
-            ...p,
-            correct: result?.correct ?? 0,
-            totalTimeMs: result?.totalTimeMs ?? 0,
-            rank: result ? results.indexOf(result) + 1 : null,
+            id: r.playerId,
+            firstname: player?.firstname ?? r.nickname.split(' ')[0] ?? '',
+            lastname: player?.lastname ?? r.nickname.split(' ').slice(1).join(' ') ?? '',
+            email: player?.email ?? null,
+            nickname: r.nickname,
+            correct: r.correct,
+            totalTimeMs: r.totalTimeMs,
+            rank: i + 1,
           }
-        }).sort((a, b) => (a.rank ?? 99) - (b.rank ?? 99))
+        })
 
         return (
           <div key={a.id} className="space-y-4">

@@ -76,6 +76,12 @@ export function HostGameClient({
     supabase.from('players').select('*').eq('game_id', gameId)
       .then(({ data }) => setPlayers(data ?? []))
 
+    const questionIds = initialQuestions.map(q => q.id)
+    if (questionIds.length > 0) {
+      supabase.from('answers').select('*').in('question_id', questionIds)
+        .then(({ data }) => setAnswers(data ?? []))
+    }
+
     const channel = supabase
       .channel(`host:${gameId}`)
       .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'games', filter: `id=eq.${gameId}` },
