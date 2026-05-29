@@ -49,8 +49,27 @@ export function HostGameClient({
   const [archived, setArchived] = useState(false)
   const [confirmArchive, setConfirmArchive] = useState(false)
   const [confirmReserve, setConfirmReserve] = useState(false)
+  const [playedIds, setPlayedIds] = useState<Set<string>>(new Set())
   const supabase = createClient()
   const router = useRouter()
+
+  useEffect(() => {
+    if (initialGame.current_question_id) {
+      setPlayedIds(new Set([initialGame.current_question_id]))
+    }
+    const questionIds = initialQuestions.map(q => q.id)
+    if (questionIds.length > 0) {
+      supabase.from('answers').select('question_id').in('question_id', questionIds)
+        .then(({ data }) => {
+          if (data) setPlayedIds(prev => new Set([...prev, ...data.map(a => a.question_id)]))
+        })
+    }
+  }, [])
+
+  useEffect(() => {
+    if (game.current_question_id)
+      setPlayedIds(prev => new Set([...prev, game.current_question_id!]))
+  }, [game.current_question_id])
 
   useEffect(() => {
     supabase.from('players').select('*').eq('game_id', gameId)
@@ -168,11 +187,14 @@ export function HostGameClient({
           {questions.map(q => {
             const isActive = q.id === game.current_question_id
             const isOpen = isActive && game.status === 'question_open'
+            const wasPlayed = !isActive && playedIds.has(q.id)
             return (
               <div
                 key={q.id}
                 className={`grid grid-cols-[5rem_1fr_9rem_5rem_7rem] gap-2 items-center p-2 rounded-lg ${
-                  isActive ? 'bg-yellow-900/30 border border-yellow-600' : 'bg-zinc-900'
+                  isActive ? 'bg-yellow-900/30 border border-yellow-600'
+                  : wasPlayed ? 'bg-green-900/20 border border-green-800'
+                  : 'bg-zinc-900'
                 }`}
               >
                 <span className="font-mono text-sm font-bold text-zinc-400">
