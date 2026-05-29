@@ -42,21 +42,7 @@ export default function Home() {
               textDecoration: 'none',
             }}
           >
-            REJOINDRE UNE PARTIE
-          </Link>
-          <Link
-            href="/host"
-            className="block w-full text-center rounded-lg py-3"
-            style={{
-              border: `2px solid ${RED}`,
-              color: RED,
-              fontFamily: 'var(--font-bebas)',
-              fontSize: '1.2rem',
-              letterSpacing: '0.1em',
-              textDecoration: 'none',
-            }}
-          >
-            ESPACE ADMIN
+            REJOINDRE LA PARTIE
           </Link>
         </div>
       </div>

@@ -35,7 +35,6 @@ export function PlayClient({ gameId, playerId }: { gameId: string; playerId: str
   const [input, setInput] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [timeLeft, setTimeLeft] = useState<number | null>(null)
-  const [playerCount, setPlayerCount] = useState(0)
   const [finalScore, setFinalScore] = useState<number | null>(null)
 
   const supabase = createClient()
@@ -46,15 +45,10 @@ export function PlayClient({ gameId, playerId }: { gameId: string; playerId: str
     supabase.from('games').select('*').eq('id', gameId).single()
       .then(({ data }) => setGame(data))
 
-    supabase.from('players').select('id', { count: 'exact', head: true }).eq('game_id', gameId)
-      .then(({ count }) => setPlayerCount(count ?? 0))
-
     const channel = supabase
       .channel(`game:${gameId}`)
       .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'games', filter: `id=eq.${gameId}` },
         ({ new: g }) => setGame(g as Game))
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'players', filter: `game_id=eq.${gameId}` },
-        () => setPlayerCount(c => c + 1))
       .subscribe()
 
     return () => { supabase.removeChannel(channel) }
@@ -145,12 +139,9 @@ export function PlayClient({ gameId, playerId }: { gameId: string; playerId: str
       <AnimatePresence mode="wait">
         {game.status === 'lobby' && (
           <motion.div key="lobby" {...fade} className="text-center space-y-4 pt-10">
-            <div style={{ fontFamily: 'var(--font-bebas)', fontSize: '3rem', lineHeight: 1, color: RED, letterSpacing: '0.05em' }}>
-              EN ATTENTE…
+            <div style={{ fontFamily: 'var(--font-bebas)', fontSize: '2.4rem', lineHeight: 1.1, color: RED, letterSpacing: '0.05em' }}>
+              LA PARTIE VA<br />BIENTÔT COMMENCER
             </div>
-            <p style={{ color: '#7A5030', fontSize: '1rem' }}>
-              {playerCount} joueur{playerCount > 1 ? 's' : ''} connecté{playerCount > 1 ? 's' : ''}
-            </p>
             <div className="mt-4 flex justify-center gap-2">
               {[0, 1, 2].map(i => (
                 <motion.div
