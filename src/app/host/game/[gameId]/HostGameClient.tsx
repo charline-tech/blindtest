@@ -17,6 +17,7 @@ type Question = {
   id: string
   order_index: number
   answer: string
+  hint: string | null
   points: number
   duration_seconds: number
 }
@@ -44,9 +45,9 @@ export function HostGameClient({
   const [questions, setQuestions] = useState(initialQuestions)
   const [players, setPlayers] = useState<Player[]>([])
   const [answers, setAnswers] = useState<Answer[]>([])
-  const [newQ, setNewQ] = useState({ answer: '', duration_seconds: '30' })
+  const [newQ, setNewQ] = useState({ answer: '', hint: '', duration_seconds: '30' })
   const [editingId, setEditingId] = useState<string | null>(null)
-  const [editValues, setEditValues] = useState({ answer: '', duration_seconds: '' })
+  const [editValues, setEditValues] = useState({ answer: '', hint: '', duration_seconds: '' })
   const [archived, setArchived] = useState(false)
   const [confirmArchive, setConfirmArchive] = useState(false)
   const supabase = createClient()
@@ -79,12 +80,13 @@ export function HostGameClient({
 
   function startEdit(q: Question) {
     setEditingId(q.id)
-    setEditValues({ answer: q.answer, duration_seconds: String(q.duration_seconds) })
+    setEditValues({ answer: q.answer, hint: q.hint ?? '', duration_seconds: String(q.duration_seconds) })
   }
 
   async function saveEdit(q: Question) {
     const updated = {
       answer: editValues.answer.trim(),
+      hint: editValues.hint.trim() || null,
       duration_seconds: parseInt(editValues.duration_seconds) || q.duration_seconds,
     }
     const { error } = await supabase.from('questions').update(updated).eq('id', q.id)
@@ -139,11 +141,12 @@ export function HostGameClient({
       game_id: gameId,
       order_index: orderIndex,
       answer: newQ.answer,
+      hint: newQ.hint.trim() || null,
       points: 1,
       duration_seconds: parseInt(newQ.duration_seconds),
     }).select('*').single()
     if (data) setQuestions(prev => [...prev, data])
-    setNewQ({ answer: '', duration_seconds: '30' })
+    setNewQ({ answer: '', hint: '', duration_seconds: '30' })
   }
 
   return (
@@ -171,31 +174,40 @@ export function HostGameClient({
             >
               {editingId === q.id ? (
                 /* Mode édition */
-                <div className="flex items-center gap-2 p-3">
-                  <span className="text-zinc-500 w-6 shrink-0">{q.order_index + 1}.</span>
-                  <Input
-                    value={editValues.answer}
-                    onChange={e => setEditValues(p => ({ ...p, answer: e.target.value }))}
-                    className="bg-zinc-800 border-zinc-600 flex-1 h-8 text-sm"
-                    autoFocus
-                    onKeyDown={e => e.key === 'Enter' && saveEdit(q)}
-                  />
-                  <Input
-                    value={editValues.duration_seconds}
-                    onChange={e => setEditValues(p => ({ ...p, duration_seconds: e.target.value }))}
-                    type="number"
-                    min="10"
-                    max="300"
-                    className="bg-zinc-800 border-zinc-600 w-16 h-8 text-sm"
-                  />
-                  <Button size="sm" onClick={() => saveEdit(q)} className="h-8 px-2">✓</Button>
-                  <Button size="sm" variant="ghost" onClick={() => setEditingId(null)} className="h-8 px-2">✕</Button>
+                <div className="flex flex-col gap-2 p-3">
+                  <div className="flex items-center gap-2">
+                    <span className="text-zinc-500 w-6 shrink-0">{q.order_index + 1}.</span>
+                    <Input
+                      value={editValues.answer}
+                      onChange={e => setEditValues(p => ({ ...p, answer: e.target.value }))}
+                      placeholder="Réponse"
+                      className="bg-zinc-800 border-zinc-600 flex-1 h-8 text-sm"
+                      autoFocus
+                    />
+                    <Input
+                      value={editValues.hint}
+                      onChange={e => setEditValues(p => ({ ...p, hint: e.target.value }))}
+                      placeholder="Indication (ex: artiste)"
+                      className="bg-zinc-800 border-zinc-600 w-36 h-8 text-sm"
+                    />
+                    <Input
+                      value={editValues.duration_seconds}
+                      onChange={e => setEditValues(p => ({ ...p, duration_seconds: e.target.value }))}
+                      type="number"
+                      min="10"
+                      max="300"
+                      className="bg-zinc-800 border-zinc-600 w-16 h-8 text-sm"
+                    />
+                    <Button size="sm" onClick={() => saveEdit(q)} className="h-8 px-2">✓</Button>
+                    <Button size="sm" variant="ghost" onClick={() => setEditingId(null)} className="h-8 px-2">✕</Button>
+                  </div>
                 </div>
               ) : (
                 /* Mode affichage */
                 <div className="flex items-center gap-3 p-3">
                   <span className="text-zinc-500 w-6 shrink-0">{q.order_index + 1}.</span>
                   <span className="flex-1 font-medium truncate">{q.answer}</span>
+                  {q.hint && <span className="text-zinc-400 text-xs italic shrink-0">{q.hint}</span>}
                   <span className="text-zinc-500 text-sm shrink-0">{q.duration_seconds}s</span>
                   <button
                     onClick={() => startEdit(q)}
@@ -224,6 +236,12 @@ export function HostGameClient({
                 placeholder="Réponse attendue"
                 className="bg-zinc-900 border-zinc-700 flex-1"
                 required
+              />
+              <Input
+                value={newQ.hint}
+                onChange={e => setNewQ(p => ({ ...p, hint: e.target.value }))}
+                placeholder="Indication (ex: artiste)"
+                className="bg-zinc-900 border-zinc-700 w-40"
               />
               <Input
                 value={newQ.duration_seconds}

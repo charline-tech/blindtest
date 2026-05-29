@@ -12,6 +12,7 @@ type Game = {
 type Question = {
   id: string
   answer: string
+  hint: string | null
   duration_seconds: number
   order_index: number
 }
@@ -159,9 +160,16 @@ export function PlayClient({ gameId, playerId }: { gameId: string; playerId: str
         {game.status === 'question_open' && question && (
           <motion.div key={`q-${question.id}`} {...fade} className="w-full max-w-sm space-y-6 pt-10">
             <div className="flex justify-between items-center">
-              <span style={{ fontFamily: 'var(--font-bebas)', fontSize: '1.1rem', letterSpacing: '0.1em', color: '#7A5030' }}>
-                QUESTION {question.order_index + 1}
-              </span>
+              <div>
+                <span style={{ fontFamily: 'var(--font-bebas)', fontSize: '1.1rem', letterSpacing: '0.1em', color: '#7A5030' }}>
+                  AIR N°{question.order_index + 1}
+                </span>
+                {question.hint && (
+                  <span style={{ fontFamily: 'var(--font-bebas)', fontSize: '0.95rem', letterSpacing: '0.08em', color: RED, marginLeft: '0.5rem' }}>
+                    — {question.hint.toUpperCase()}
+                  </span>
+                )}
+              </div>
               {timeLeft !== null && (
                 <span
                   style={{
