@@ -7,6 +7,9 @@ import { DeleteArchiveButton, DeleteAllArchivesButton } from './ArchiveDeleteBut
 type PlayerResult = {
   playerId: string
   nickname: string
+  firstname?: string | null
+  lastname?: string | null
+  email?: string | null
   correct: number
   totalTimeMs: number
 }
@@ -64,9 +67,9 @@ export default async function ArchivesPage() {
           const player = a.players.find(p => p.id === r.playerId)
           return {
             id: r.playerId,
-            firstname: player?.firstname ?? r.nickname.split(' ')[0] ?? '',
-            lastname: player?.lastname ?? r.nickname.split(' ').slice(1).join(' ') ?? '',
-            email: player?.email ?? null,
+            firstname: r.firstname ?? player?.firstname ?? r.nickname.split(' ')[0] ?? '',
+            lastname: r.lastname ?? player?.lastname ?? r.nickname.split(' ').slice(1).join(' ') ?? '',
+            email: r.email ?? player?.email ?? null,
             nickname: r.nickname,
             correct: r.correct,
             totalTimeMs: r.totalTimeMs,

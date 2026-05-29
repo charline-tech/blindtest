@@ -17,18 +17,18 @@ export async function POST(req: NextRequest) {
   const { data: game } = await service.from('games').select('name').eq('id', gameId).single()
 
   // Compute leaderboard server-side
-  const { data: players } = await service.from('players').select('id, nickname').eq('game_id', gameId)
+  const { data: players } = await service.from('players').select('id, nickname, firstname, lastname, email').eq('game_id', gameId)
   const { data: questions } = await service.from('questions').select('id').eq('game_id', gameId)
   const questionIds = questions?.map(q => q.id) ?? []
 
-  let leaderboard: { playerId: string; nickname: string; correct: number; totalTimeMs: number }[] = []
+  let leaderboard: { playerId: string; nickname: string; firstname: string | null; lastname: string | null; email: string | null; correct: number; totalTimeMs: number }[] = []
 
   if (players && players.length > 0) {
     const { data: answers } = questionIds.length > 0
       ? await service.from('answers').select('player_id, is_correct, time_ms').in('question_id', questionIds)
       : { data: [] }
 
-    const map = new Map(players.map(p => [p.id, { playerId: p.id, nickname: p.nickname, correct: 0, totalTimeMs: 0 }]))
+    const map = new Map(players.map(p => [p.id, { playerId: p.id, nickname: p.nickname, firstname: p.firstname ?? null, lastname: p.lastname ?? null, email: p.email ?? null, correct: 0, totalTimeMs: 0 }]))
     for (const a of answers ?? []) {
       const s = map.get(a.player_id)
       if (s && a.is_correct) { s.correct += 1; s.totalTimeMs += a.time_ms }
