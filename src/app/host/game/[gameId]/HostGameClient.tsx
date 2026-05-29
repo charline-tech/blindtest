@@ -126,11 +126,11 @@ export function HostGameClient({
   }
 
   async function putBackInReserve() {
-    await supabase.from('games').update({
-      status: 'draft',
-      current_question_id: null,
-      question_opened_at: null,
-    }).eq('id', gameId)
+    await fetch('/api/reserve-game', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ gameId, leaderboard }),
+    })
     setPlayedIds(new Set())
     setEndFlow('idle')
     router.push('/host')
