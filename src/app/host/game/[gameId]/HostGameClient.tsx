@@ -141,7 +141,10 @@ export function HostGameClient({
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ gameId, leaderboard }),
     })
-    if (res.ok) setArchived(true)
+    if (res.ok) {
+      setArchived(true)
+      setEndFlow('idle')
+    }
   }
 
   async function toggleOverride(answerId: string, current: boolean) {
@@ -258,7 +261,10 @@ export function HostGameClient({
           {endFlow === 'confirm' && (
             <div className="flex items-center gap-3 p-3 bg-zinc-800 border border-zinc-600 rounded-lg">
               <span className="text-sm text-zinc-300 flex-1">Confirmer la fin de partie ?</span>
-              <Button size="sm" onClick={() => setEndFlow('choose')}>Confirmer</Button>
+              <Button size="sm" onClick={async () => {
+                await supabase.from('games').update({ status: 'finished' }).eq('id', gameId)
+                setEndFlow('choose')
+              }}>Confirmer</Button>
               <Button size="sm" variant="ghost" onClick={() => setEndFlow('idle')}>Annuler</Button>
             </div>
           )}
