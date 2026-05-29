@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
+import { DeleteArchiveButton, DeleteAllArchivesButton } from './ArchiveDeleteButtons'
 
 type PlayerResult = {
   playerId: string
@@ -43,9 +44,12 @@ export default async function ArchivesPage() {
     <main className="min-h-screen bg-zinc-950 text-white p-6 max-w-4xl mx-auto space-y-8">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-black">Archives</h1>
-        <Button asChild variant="ghost">
-          <Link href="/host">← Retour</Link>
-        </Button>
+        <div className="flex items-center gap-2">
+          {archivesWithPlayers.length > 1 && <DeleteAllArchivesButton />}
+          <Button asChild variant="ghost">
+            <Link href="/host">← Retour</Link>
+          </Button>
+        </div>
       </div>
 
       {archivesWithPlayers.length === 0 && (
@@ -68,13 +72,16 @@ export default async function ArchivesPage() {
 
         return (
           <div key={a.id} className="space-y-4">
-            <div className="flex items-center gap-4">
-              <h2 className="text-xl font-bold">
-                {new Date(a.created_at).toLocaleDateString('fr-BE', {
-                  day: '2-digit', month: 'long', year: 'numeric',
-                })}
-              </h2>
-              <span className="text-zinc-500 text-sm">{rows.length} joueurs</span>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <h2 className="text-xl font-bold">
+                  {new Date(a.created_at).toLocaleDateString('fr-BE', {
+                    day: '2-digit', month: 'long', year: 'numeric',
+                  })}
+                </h2>
+                <span className="text-zinc-500 text-sm">{rows.length} joueurs</span>
+              </div>
+              <DeleteArchiveButton archiveId={a.id} />
             </div>
 
             <div className="overflow-x-auto rounded-lg border border-zinc-800">
