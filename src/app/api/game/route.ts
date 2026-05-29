@@ -28,7 +28,7 @@ export async function POST(_req: NextRequest) {
   const code = await generateUniqueCode()
   const { data, error } = await service
     .from('games')
-    .insert({ code, host_id: user.id })
+    .insert({ code, host_id: user.id, status: 'draft' })
     .select('id, code')
     .single()
 

@@ -119,7 +119,12 @@ export function HostGameClient({
       .eq('id', answerId)
   }
 
-  const canLaunch = game.status !== 'finished'
+  const isDraft = game.status === 'draft'
+  const canLaunch = !isDraft && game.status !== 'finished'
+
+  async function activateGame() {
+    await supabase.from('games').update({ status: 'lobby' }).eq('id', gameId)
+  }
 
   return (
     <div className="min-h-screen bg-zinc-950 text-white p-4 grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -192,7 +197,15 @@ export function HostGameClient({
 
         {/* Actions globales */}
         <div className="flex gap-3 flex-wrap">
-          {!archived && !confirmArchive && (
+          <Button variant="ghost" onClick={() => router.push('/host')}>← Dashboard</Button>
+
+          {isDraft && (
+            <Button onClick={activateGame} className="bg-green-700 hover:bg-green-600 text-white">
+              ▶ Activer la partie
+            </Button>
+          )}
+
+          {!isDraft && !archived && !confirmArchive && (
             <Button onClick={() => setConfirmArchive(true)} variant="destructive">
               Terminer et archiver
             </Button>
