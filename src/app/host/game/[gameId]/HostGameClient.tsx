@@ -47,6 +47,7 @@ export function HostGameClient({
   const [answers, setAnswers] = useState<Answer[]>([])
   const [archived, setArchived] = useState(false)
   const [confirmArchive, setConfirmArchive] = useState(false)
+  const [confirmReserve, setConfirmReserve] = useState(false)
   const supabase = createClient()
   const router = useRouter()
 
@@ -102,6 +103,15 @@ export function HostGameClient({
 
   async function reveal() {
     await supabase.from('games').update({ status: 'reveal' }).eq('id', gameId)
+  }
+
+  async function putBackInReserve() {
+    await supabase.from('games').update({
+      status: 'draft',
+      current_question_id: null,
+      question_opened_at: null,
+    }).eq('id', gameId)
+    router.push('/host')
   }
 
   async function finishGame() {
@@ -205,10 +215,22 @@ export function HostGameClient({
             </Button>
           )}
 
-          {!isDraft && !archived && !confirmArchive && (
-            <Button onClick={() => setConfirmArchive(true)} variant="destructive">
-              Terminer et archiver
-            </Button>
+          {!isDraft && !archived && !confirmArchive && !confirmReserve && (
+            <>
+              <Button onClick={() => setConfirmReserve(true)} variant="outline" className="border-zinc-600 text-zinc-300">
+                Remettre en réserve
+              </Button>
+              <Button onClick={() => setConfirmArchive(true)} variant="destructive">
+                Terminer et archiver
+              </Button>
+            </>
+          )}
+          {confirmReserve && (
+            <div className="flex items-center gap-3 p-3 bg-zinc-800 border border-zinc-600 rounded-lg">
+              <span className="text-sm text-zinc-300 flex-1">Remettre en réserve ? La partie sera à nouveau invisible aux joueurs.</span>
+              <Button size="sm" onClick={putBackInReserve}>Confirmer</Button>
+              <Button size="sm" variant="ghost" onClick={() => setConfirmReserve(false)}>Annuler</Button>
+            </div>
           )}
           {confirmArchive && !archived && (
             <div className="flex items-center gap-3 p-3 bg-red-950/40 border border-red-700 rounded-lg">
