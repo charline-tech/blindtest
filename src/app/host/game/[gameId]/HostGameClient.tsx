@@ -49,6 +49,7 @@ export function HostGameClient({
   const [endFlow, setEndFlow] = useState<'idle' | 'confirm' | 'choose'>('idle')
   const [archived, setArchived] = useState(false)
   const [playedIds, setPlayedIds] = useState<Set<string>>(new Set())
+  const [showLeaveWarning, setShowLeaveWarning] = useState(false)
   const supabase = createClient()
   const router = useRouter()
 
@@ -155,6 +156,19 @@ export function HostGameClient({
 
   const isDraft = game.status === 'draft'
   const canLaunch = !isDraft && game.status !== 'finished'
+  const isActive = ['lobby', 'question_open', 'reveal'].includes(game.status)
+
+  useEffect(() => {
+    if (!isActive) return
+    const handler = (e: BeforeUnloadEvent) => { e.preventDefault(); e.returnValue = '' }
+    window.addEventListener('beforeunload', handler)
+    return () => window.removeEventListener('beforeunload', handler)
+  }, [isActive])
+
+  function goToDashboard() {
+    if (isActive) { setShowLeaveWarning(true); return }
+    router.push('/host')
+  }
 
   async function activateGame() {
     await supabase.from('games').update({ status: 'lobby' }).eq('id', gameId)
@@ -162,6 +176,21 @@ export function HostGameClient({
 
   return (
     <div className="min-h-screen bg-zinc-950 text-white p-4 grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+      {showLeaveWarning && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+          <div className="bg-zinc-900 border border-zinc-700 rounded-xl p-6 max-w-sm w-full space-y-4 shadow-2xl">
+            <h2 className="text-lg font-black text-white">Quitter sans terminer ?</h2>
+            <p className="text-zinc-400 text-sm">
+              La partie est encore active. Les joueurs resteront connectés en attente.
+            </p>
+            <div className="flex gap-3 justify-end">
+              <Button variant="ghost" onClick={() => setShowLeaveWarning(false)}>Rester</Button>
+              <Button variant="destructive" onClick={() => router.push('/host')}>Quitter quand même</Button>
+            </div>
+          </div>
+        </div>
+      )}
       {/* Gauche : contrôle */}
       <div className="lg:col-span-2 space-y-6">
         {/* Header */}
@@ -243,7 +272,7 @@ export function HostGameClient({
         {/* Actions globales */}
         <div className="flex flex-col gap-3">
           <div className="flex gap-3 flex-wrap items-center">
-            <Button variant="ghost" onClick={() => router.push('/host')}>← Dashboard</Button>
+            <Button variant="ghost" onClick={goToDashboard}>← Dashboard</Button>
 
             {isDraft && (
               <Button onClick={activateGame} className="bg-green-700 hover:bg-green-600 text-white">
