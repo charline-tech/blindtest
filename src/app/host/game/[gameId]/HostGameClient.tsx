@@ -45,9 +45,6 @@ export function HostGameClient({
   const [questions, setQuestions] = useState(initialQuestions)
   const [players, setPlayers] = useState<Player[]>([])
   const [answers, setAnswers] = useState<Answer[]>([])
-  const [newQ, setNewQ] = useState({ answer: '', hint: '', duration_seconds: '300' })
-  const [editingId, setEditingId] = useState<string | null>(null)
-  const [editValues, setEditValues] = useState({ answer: '', hint: '', duration_seconds: '' })
   const [archived, setArchived] = useState(false)
   const [confirmArchive, setConfirmArchive] = useState(false)
   const supabase = createClient()
@@ -78,22 +75,17 @@ export function HostGameClient({
     : []
   const leaderboard = computeLeaderboard(players, answers)
 
-  function startEdit(q: Question) {
-    setEditingId(q.id)
-    setEditValues({ answer: q.answer, hint: q.hint ?? '', duration_seconds: String(q.duration_seconds) })
-  }
-
-  async function saveEdit(q: Question) {
-    const updated = {
-      answer: editValues.answer.trim(),
-      hint: editValues.hint.trim() || null,
-      duration_seconds: parseInt(editValues.duration_seconds) || q.duration_seconds,
+  async function saveField(q: Question, field: 'answer' | 'hint' | 'duration_seconds', value: string) {
+    const update: Record<string, string | number | null> = {}
+    if (field === 'duration_seconds') {
+      update.duration_seconds = parseInt(value) || q.duration_seconds
+    } else if (field === 'hint') {
+      update.hint = value.trim() || null
+    } else {
+      update.answer = value.trim()
     }
-    const { error } = await supabase.from('questions').update(updated).eq('id', q.id)
-    if (!error) {
-      setQuestions(prev => prev.map(x => x.id === q.id ? { ...x, ...updated } : x))
-      setEditingId(null)
-    }
+    const { data } = await supabase.from('questions').update(update).eq('id', q.id).select('*').single()
+    if (data) setQuestions(prev => prev.map(x => x.id === q.id ? data : x))
   }
 
   async function openQuestion(q: Question) {
@@ -104,19 +96,12 @@ export function HostGameClient({
     })
     if (!res.ok) {
       const data = await res.json().catch(() => ({}))
-      alert(`Erreur ouverture question : ${data.error ?? res.status}`)
+      alert(`Erreur : ${data.error ?? res.status}`)
     }
   }
 
   async function reveal() {
     await supabase.from('games').update({ status: 'reveal' }).eq('id', gameId)
-  }
-
-  async function nextQuestion() {
-    const idx = currentQuestion ? currentQuestion.order_index + 1 : 0
-    const next = questions.find(q => q.order_index === idx)
-    if (next) await openQuestion(next)
-    else await supabase.from('games').update({ status: 'lobby' }).eq('id', gameId)
   }
 
   async function finishGame() {
@@ -134,20 +119,7 @@ export function HostGameClient({
       .eq('id', answerId)
   }
 
-  async function addQuestion(e: React.FormEvent) {
-    e.preventDefault()
-    const orderIndex = questions.length
-    const { data } = await supabase.from('questions').insert({
-      game_id: gameId,
-      order_index: orderIndex,
-      answer: newQ.answer,
-      hint: newQ.hint.trim() || null,
-      points: 1,
-      duration_seconds: parseInt(newQ.duration_seconds),
-    }).select('*').single()
-    if (data) setQuestions(prev => [...prev, data])
-    setNewQ({ answer: '', hint: '', duration_seconds: '30' })
-  }
+  const canLaunch = game.status !== 'finished'
 
   return (
     <div className="min-h-screen bg-zinc-950 text-white p-4 grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -160,110 +132,70 @@ export function HostGameClient({
           <Badge variant="secondary">{players.length} joueurs</Badge>
         </div>
 
-        {/* Liste questions */}
+        {/* Liste airs */}
         <div className="space-y-2">
-          <h2 className="font-bold text-lg">Questions</h2>
-          {questions.map(q => (
-            <div
-              key={q.id}
-              className={`rounded-lg ${
-                q.id === game.current_question_id
-                  ? 'bg-yellow-900/30 border border-yellow-600'
-                  : 'bg-zinc-900'
-              }`}
-            >
-              {editingId === q.id ? (
-                /* Mode édition */
-                <div className="flex flex-col gap-2 p-3">
-                  <div className="flex items-center gap-2">
-                    <span className="text-zinc-500 w-6 shrink-0">{q.order_index + 1}.</span>
-                    <Input
-                      value={editValues.answer}
-                      onChange={e => setEditValues(p => ({ ...p, answer: e.target.value }))}
-                      placeholder="Réponse"
-                      className="bg-zinc-800 border-zinc-600 flex-1 h-8 text-sm"
-                      autoFocus
-                    />
-                    <Input
-                      value={editValues.hint}
-                      onChange={e => setEditValues(p => ({ ...p, hint: e.target.value }))}
-                      placeholder="Indication (ex: artiste)"
-                      className="bg-zinc-800 border-zinc-600 w-36 h-8 text-sm"
-                    />
-                    <Input
-                      value={editValues.duration_seconds}
-                      onChange={e => setEditValues(p => ({ ...p, duration_seconds: e.target.value }))}
-                      type="number"
-                      min="10"
-                      max="300"
-                      className="bg-zinc-800 border-zinc-600 w-16 h-8 text-sm"
-                    />
-                    <Button size="sm" onClick={() => saveEdit(q)} className="h-8 px-2">✓</Button>
-                    <Button size="sm" variant="ghost" onClick={() => setEditingId(null)} className="h-8 px-2">✕</Button>
-                  </div>
+          <div className="grid grid-cols-[5rem_1fr_9rem_5rem_7rem] gap-2 px-2 text-xs text-zinc-500 uppercase tracking-wider">
+            <span>Air</span>
+            <span>Réponse</span>
+            <span>Indication</span>
+            <span>Durée</span>
+            <span></span>
+          </div>
+          {questions.map(q => {
+            const isActive = q.id === game.current_question_id
+            const isOpen = isActive && game.status === 'question_open'
+            return (
+              <div
+                key={q.id}
+                className={`grid grid-cols-[5rem_1fr_9rem_5rem_7rem] gap-2 items-center p-2 rounded-lg ${
+                  isActive ? 'bg-yellow-900/30 border border-yellow-600' : 'bg-zinc-900'
+                }`}
+              >
+                <span className="font-mono text-sm font-bold text-zinc-400">
+                  Air n°{q.order_index + 1}
+                </span>
+                <Input
+                  defaultValue={q.answer}
+                  onBlur={e => saveField(q, 'answer', e.target.value)}
+                  placeholder="Réponse…"
+                  className="bg-zinc-800 border-zinc-600 h-8 text-sm"
+                />
+                <Input
+                  defaultValue={q.hint ?? ''}
+                  onBlur={e => saveField(q, 'hint', e.target.value)}
+                  placeholder="ex: artiste"
+                  className="bg-zinc-800 border-zinc-600 h-8 text-sm"
+                />
+                <Input
+                  defaultValue={String(q.duration_seconds)}
+                  onBlur={e => saveField(q, 'duration_seconds', e.target.value)}
+                  type="number"
+                  min="10"
+                  max="600"
+                  className="bg-zinc-800 border-zinc-600 h-8 text-sm"
+                />
+                <div className="flex justify-end">
+                  {isOpen ? (
+                    <Button size="sm" onClick={reveal} variant="secondary" className="h-8 text-xs">
+                      Révéler
+                    </Button>
+                  ) : canLaunch ? (
+                    <Button size="sm" onClick={() => openQuestion(q)} className="h-8 text-xs">
+                      ▶ Lancer
+                    </Button>
+                  ) : null}
                 </div>
-              ) : (
-                /* Mode affichage */
-                <div className="flex items-center gap-3 p-3">
-                  <span className="text-zinc-500 w-6 shrink-0">{q.order_index + 1}.</span>
-                  <span className="flex-1 font-medium truncate">{q.answer}</span>
-                  {q.hint && <span className="text-zinc-400 text-xs italic shrink-0">{q.hint}</span>}
-                  <span className="text-zinc-500 text-sm shrink-0">{q.duration_seconds}s</span>
-                  <button
-                    onClick={() => startEdit(q)}
-                    className="text-zinc-500 hover:text-white text-sm shrink-0 px-1"
-                    title="Modifier"
-                  >
-                    ✎
-                  </button>
-                  {game.status === 'lobby' && (
-                    <Button size="sm" onClick={() => openQuestion(q)}>▶ Lancer</Button>
-                  )}
-                  {game.status === 'reveal' && q.id === game.current_question_id && (
-                    <Button size="sm" onClick={nextQuestion}>Suivante →</Button>
-                  )}
-                </div>
-              )}
-            </div>
-          ))}
-
-          {/* Ajouter question */}
-          {game.status === 'lobby' && (
-            <form onSubmit={addQuestion} className="flex gap-2 mt-4">
-              <Input
-                value={newQ.answer}
-                onChange={e => setNewQ(p => ({ ...p, answer: e.target.value }))}
-                placeholder="Réponse attendue"
-                className="bg-zinc-900 border-zinc-700 flex-1"
-                required
-              />
-              <Input
-                value={newQ.hint}
-                onChange={e => setNewQ(p => ({ ...p, hint: e.target.value }))}
-                placeholder="Indication (ex: artiste)"
-                className="bg-zinc-900 border-zinc-700 w-40"
-              />
-              <Input
-                value={newQ.duration_seconds}
-                onChange={e => setNewQ(p => ({ ...p, duration_seconds: e.target.value }))}
-                type="number"
-                min="10"
-                max="300"
-                className="bg-zinc-900 border-zinc-700 w-20"
-                placeholder="30"
-              />
-              <Button type="submit">+</Button>
-            </form>
-          )}
+              </div>
+            )
+          })}
         </div>
 
-        {/* Actions question courante */}
+        {/* Actions globales */}
         <div className="flex gap-3 flex-wrap">
-          {game.status === 'question_open' && (
-            <Button onClick={reveal} variant="secondary">Révéler les réponses</Button>
-          )}
-          {game.status === 'lobby' && questions.length > 0 && !archived && !confirmArchive && (
-            <Button onClick={() => setConfirmArchive(true)} variant="destructive">Terminer et archiver</Button>
+          {!archived && !confirmArchive && (
+            <Button onClick={() => setConfirmArchive(true)} variant="destructive">
+              Terminer et archiver
+            </Button>
           )}
           {confirmArchive && !archived && (
             <div className="flex items-center gap-3 p-3 bg-red-950/40 border border-red-700 rounded-lg">
