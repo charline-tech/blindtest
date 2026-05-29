@@ -48,6 +48,7 @@ export function HostGameClient({
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editValues, setEditValues] = useState({ answer: '', duration_seconds: '' })
   const [archived, setArchived] = useState(false)
+  const [confirmArchive, setConfirmArchive] = useState(false)
   const supabase = createClient()
   const router = useRouter()
 
@@ -243,8 +244,15 @@ export function HostGameClient({
           {game.status === 'question_open' && (
             <Button onClick={reveal} variant="secondary">Révéler les réponses</Button>
           )}
-          {game.status === 'lobby' && questions.length > 0 && !archived && (
-            <Button onClick={finishGame} variant="destructive">Terminer et archiver</Button>
+          {game.status === 'lobby' && questions.length > 0 && !archived && !confirmArchive && (
+            <Button onClick={() => setConfirmArchive(true)} variant="destructive">Terminer et archiver</Button>
+          )}
+          {confirmArchive && !archived && (
+            <div className="flex items-center gap-3 p-3 bg-red-950/40 border border-red-700 rounded-lg">
+              <span className="text-sm text-red-300 flex-1">Confirmer la fin de partie ? Cette action est irréversible.</span>
+              <Button size="sm" variant="destructive" onClick={finishGame}>Confirmer</Button>
+              <Button size="sm" variant="ghost" onClick={() => setConfirmArchive(false)}>Annuler</Button>
+            </div>
           )}
           {archived && (
             <div className="flex items-center gap-4">
