@@ -271,7 +271,7 @@ export function PlayClient({ gameId, playerId }: { gameId: string; playerId: str
               </div>
             )}
             <p style={{ color: '#7A5030', fontSize: '0.85rem' }}>
-              Consultez le classement sur le grand écran.
+              Proclamation des résultats dans quelques minutes.
             </p>
           </motion.div>
         )}
