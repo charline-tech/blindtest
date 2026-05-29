@@ -13,7 +13,7 @@ export default async function HostDashboard() {
 
   const { data: games } = await supabase
     .from('games')
-    .select('id, code, status, created_at')
+    .select('id, code, name, status, created_at')
     .eq('host_id', user.id)
     .neq('status', 'finished')
     .order('created_at', { ascending: false })
@@ -42,7 +42,7 @@ export default async function HostDashboard() {
               className="flex items-center justify-between p-4 bg-zinc-900 rounded-lg hover:bg-zinc-800 transition"
             >
               <div className="flex items-center gap-4">
-                <span className="font-mono text-3xl font-black text-yellow-400">{g.code}</span>
+                <span className="text-xl font-bold text-yellow-400">{g.name}</span>
                 <Badge variant="outline">{g.status}</Badge>
               </div>
               <Button variant="outline" size="sm">Gérer →</Button>
@@ -64,7 +64,7 @@ export default async function HostDashboard() {
               className="flex items-center justify-between p-4 bg-zinc-900/50 border border-zinc-700 rounded-lg"
             >
               <div className="flex items-center gap-4">
-                <span className="font-mono text-3xl font-black text-zinc-500">{g.code}</span>
+                <span className="text-xl font-bold text-zinc-400">{g.name}</span>
                 <Badge variant="secondary">réserve</Badge>
               </div>
               <div className="flex items-center gap-2">

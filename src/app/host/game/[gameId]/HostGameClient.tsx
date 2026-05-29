@@ -10,6 +10,7 @@ import { computeLeaderboard } from '@/lib/scoring'
 type Game = {
   id: string
   code: string
+  name: string
   status: string
   current_question_id: string | null
 }
@@ -142,7 +143,15 @@ export function HostGameClient({
       <div className="lg:col-span-2 space-y-6">
         {/* Header */}
         <div className="flex items-center gap-4 flex-wrap">
-          <div className="text-6xl font-black font-mono text-yellow-400">{game.code}</div>
+          <input
+            defaultValue={game.name}
+            onBlur={async e => {
+              const newName = e.target.value.trim()
+              if (newName && newName !== game.name)
+                await supabase.from('games').update({ name: newName }).eq('id', gameId)
+            }}
+            className="bg-transparent text-2xl font-black text-yellow-400 border-b border-transparent hover:border-zinc-600 focus:border-yellow-400 focus:outline-none px-1"
+          />
           <Badge variant="outline" className="text-lg capitalize">{game.status}</Badge>
           <Badge variant="secondary">{players.length} joueurs</Badge>
         </div>

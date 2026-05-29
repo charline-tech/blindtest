@@ -20,16 +20,17 @@ async function generateUniqueCode(): Promise<string> {
   throw new Error('Could not generate unique code')
 }
 
-export async function POST(_req: NextRequest) {
+export async function POST(req: NextRequest) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
+  const { name } = await req.json().catch(() => ({}))
   const code = await generateUniqueCode()
   const { data, error } = await service
     .from('games')
-    .insert({ code, host_id: user.id, status: 'draft' })
-    .select('id, code')
+    .insert({ code, host_id: user.id, status: 'draft', name: name ?? 'Nouvelle partie' })
+    .select('id, code, name')
     .single()
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
