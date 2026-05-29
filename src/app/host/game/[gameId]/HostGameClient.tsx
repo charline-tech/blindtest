@@ -46,9 +46,8 @@ export function HostGameClient({
   const [questions, setQuestions] = useState(initialQuestions)
   const [players, setPlayers] = useState<Player[]>([])
   const [answers, setAnswers] = useState<Answer[]>([])
+  const [endFlow, setEndFlow] = useState<'idle' | 'confirm' | 'choose'>('idle')
   const [archived, setArchived] = useState(false)
-  const [confirmArchive, setConfirmArchive] = useState(false)
-  const [confirmReserve, setConfirmReserve] = useState(false)
   const [playedIds, setPlayedIds] = useState<Set<string>>(new Set())
   const supabase = createClient()
   const router = useRouter()
@@ -131,6 +130,8 @@ export function HostGameClient({
       current_question_id: null,
       question_opened_at: null,
     }).eq('id', gameId)
+    setPlayedIds(new Set())
+    setEndFlow('idle')
     router.push('/host')
   }
 
@@ -237,43 +238,47 @@ export function HostGameClient({
         </div>
 
         {/* Actions globales */}
-        <div className="flex gap-3 flex-wrap">
-          <Button variant="ghost" onClick={() => router.push('/host')}>← Dashboard</Button>
+        <div className="flex flex-col gap-3">
+          <div className="flex gap-3 flex-wrap items-center">
+            <Button variant="ghost" onClick={() => router.push('/host')}>← Dashboard</Button>
 
-          {isDraft && (
-            <Button onClick={activateGame} className="bg-green-700 hover:bg-green-600 text-white">
-              ▶ Activer la partie
-            </Button>
+            {isDraft && (
+              <Button onClick={activateGame} className="bg-green-700 hover:bg-green-600 text-white">
+                ▶ Activer la partie
+              </Button>
+            )}
+
+            {!isDraft && !archived && endFlow === 'idle' && (
+              <Button onClick={() => setEndFlow('confirm')} variant="destructive">
+                Terminer la partie
+              </Button>
+            )}
+          </div>
+
+          {endFlow === 'confirm' && (
+            <div className="flex items-center gap-3 p-3 bg-zinc-800 border border-zinc-600 rounded-lg">
+              <span className="text-sm text-zinc-300 flex-1">Confirmer la fin de partie ?</span>
+              <Button size="sm" onClick={() => setEndFlow('choose')}>Confirmer</Button>
+              <Button size="sm" variant="ghost" onClick={() => setEndFlow('idle')}>Annuler</Button>
+            </div>
           )}
 
-          {!isDraft && !archived && !confirmArchive && !confirmReserve && (
-            <>
-              <Button onClick={() => setConfirmReserve(true)} variant="outline" className="border-zinc-600 text-zinc-300">
+          {endFlow === 'choose' && !archived && (
+            <div className="flex items-center gap-3 p-3 bg-zinc-800 border border-zinc-600 rounded-lg">
+              <span className="text-sm text-zinc-300 flex-1">Que faire de cette partie ?</span>
+              <Button size="sm" variant="outline" onClick={putBackInReserve}>
                 Remettre en réserve
               </Button>
-              <Button onClick={() => setConfirmArchive(true)} variant="destructive">
-                Terminer et archiver
+              <Button size="sm" variant="destructive" onClick={finishGame}>
+                Archiver
               </Button>
-            </>
-          )}
-          {confirmReserve && (
-            <div className="flex items-center gap-3 p-3 bg-zinc-800 border border-zinc-600 rounded-lg">
-              <span className="text-sm text-zinc-300 flex-1">Remettre en réserve ? La partie sera à nouveau invisible aux joueurs.</span>
-              <Button size="sm" onClick={putBackInReserve}>Confirmer</Button>
-              <Button size="sm" variant="ghost" onClick={() => setConfirmReserve(false)}>Annuler</Button>
             </div>
           )}
-          {confirmArchive && !archived && (
-            <div className="flex items-center gap-3 p-3 bg-red-950/40 border border-red-700 rounded-lg">
-              <span className="text-sm text-red-300 flex-1">Confirmer la fin de partie ? Cette action est irréversible.</span>
-              <Button size="sm" variant="destructive" onClick={finishGame}>Confirmer</Button>
-              <Button size="sm" variant="ghost" onClick={() => setConfirmArchive(false)}>Annuler</Button>
-            </div>
-          )}
+
           {archived && (
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-4 p-3 bg-zinc-800 rounded-lg">
               <span className="text-green-400 font-medium">✓ Partie archivée !</span>
-              <Button onClick={() => router.push('/host')}>← Retour au dashboard</Button>
+              <Button size="sm" onClick={() => router.push('/host')}>← Retour au dashboard</Button>
             </div>
           )}
         </div>
