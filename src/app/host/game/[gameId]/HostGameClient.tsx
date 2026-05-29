@@ -403,7 +403,8 @@ export function HostGameClient({
               <div key={p.playerId} className="flex items-center gap-2 p-2 bg-zinc-900 rounded text-sm">
                 <span className="text-zinc-500 w-5 shrink-0">{i + 1}.</span>
                 <span className="flex-1 truncate">{p.nickname}</span>
-                <span className="font-bold text-yellow-400">{p.correct} pts</span>
+                <span className="font-bold text-yellow-400 shrink-0">{p.correct} pts</span>
+                <span className="text-zinc-500 text-xs shrink-0">{(p.totalTimeMs / 1000).toFixed(1)}s</span>
               </div>
             ))}
             {leaderboard.length === 0 && (
