@@ -35,7 +35,7 @@ export async function POST(_req: NextRequest) {
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
   await service.from('questions').insert(
-    Array.from({ length: 10 }, (_, i) => ({
+    Array.from({ length: 15 }, (_, i) => ({
       game_id: data.id,
       order_index: i,
       answer: '',
