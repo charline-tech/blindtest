@@ -45,7 +45,7 @@ export function HostGameClient({
   const [questions, setQuestions] = useState(initialQuestions)
   const [players, setPlayers] = useState<Player[]>([])
   const [answers, setAnswers] = useState<Answer[]>([])
-  const [newQ, setNewQ] = useState({ answer: '', hint: '', duration_seconds: '30' })
+  const [newQ, setNewQ] = useState({ answer: '', hint: '', duration_seconds: '300' })
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editValues, setEditValues] = useState({ answer: '', hint: '', duration_seconds: '' })
   const [archived, setArchived] = useState(false)
