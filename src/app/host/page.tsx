@@ -30,9 +30,9 @@ export default async function HostDashboard() {
 
       {/* Parties actives */}
       <section>
-        <h2 className="text-xl font-bold mb-4">Parties actives</h2>
+        <h2 className="text-xl font-bold mb-4">Parties en cours</h2>
         {activeGames.length === 0 && (
-          <p className="text-zinc-400 text-sm">Aucune partie active pour le moment.</p>
+          <p className="text-zinc-400 text-sm">Aucune partie en cours pour le moment.</p>
         )}
         <div className="space-y-3">
           {activeGames.map(g => (
