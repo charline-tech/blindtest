@@ -14,6 +14,8 @@ export async function POST(req: NextRequest) {
 
   const { gameId, leaderboard } = await req.json()
 
+  const { data: game } = await service.from('games').select('name').eq('id', gameId).single()
+
   const { error: archiveError } = await service.from('game_archives').insert({
     game_id: gameId,
     host_id: user.id,
@@ -25,6 +27,12 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: archiveError.message }, { status: 500 })
 
   await service.from('games').update({ status: 'finished' }).eq('id', gameId)
+
+  fetch(`${req.nextUrl.origin}/api/send-results`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ gameName: game?.name ?? 'Blind Test', leaderboard }),
+  }).catch(() => {})
 
   return NextResponse.json({ ok: true })
 }

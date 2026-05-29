@@ -50,6 +50,7 @@ export function HostGameClient({
   const [archived, setArchived] = useState(false)
   const [playedIds, setPlayedIds] = useState<Set<string>>(new Set())
   const [showLeaveWarning, setShowLeaveWarning] = useState(false)
+  const [showLeaderboard, setShowLeaderboard] = useState(false)
   const supabase = createClient()
   const router = useRouter()
 
@@ -177,6 +178,39 @@ export function HostGameClient({
   return (
     <div className="min-h-screen bg-zinc-950 text-white p-4 grid grid-cols-1 lg:grid-cols-3 gap-6">
 
+      {showLeaderboard && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+          <div className="bg-zinc-900 border border-zinc-700 rounded-xl p-6 max-w-lg w-full space-y-4 shadow-2xl max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-black text-white">Classement final</h2>
+              <Button size="sm" variant="ghost" onClick={() => setShowLeaderboard(false)}>✕</Button>
+            </div>
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-zinc-700 text-zinc-400 text-left">
+                  <th className="pb-2 w-8">#</th>
+                  <th className="pb-2">Joueur</th>
+                  <th className="pb-2 text-right">Bonnes réponses</th>
+                  <th className="pb-2 text-right">Temps</th>
+                </tr>
+              </thead>
+              <tbody>
+                {leaderboard.map((p, i) => (
+                  <tr key={p.playerId} className="border-b border-zinc-800/60">
+                    <td className={`py-2 font-bold ${i === 0 ? 'text-yellow-400' : i === 1 ? 'text-zinc-300' : i === 2 ? 'text-amber-600' : 'text-zinc-500'}`}>
+                      {i + 1}
+                    </td>
+                    <td className="py-2 font-medium">{p.nickname}</td>
+                    <td className="py-2 text-right font-bold text-yellow-400">{p.correct}</td>
+                    <td className="py-2 text-right text-zinc-400">{(p.totalTimeMs / 1000).toFixed(1)}s</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
       {showLeaveWarning && (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
           <div className="bg-zinc-900 border border-zinc-700 rounded-xl p-6 max-w-sm w-full space-y-4 shadow-2xl">
@@ -299,8 +333,11 @@ export function HostGameClient({
           )}
 
           {endFlow === 'choose' && !archived && (
-            <div className="flex items-center gap-3 p-3 bg-zinc-800 border border-zinc-600 rounded-lg">
+            <div className="flex items-center gap-3 p-3 bg-zinc-800 border border-zinc-600 rounded-lg flex-wrap">
               <span className="text-sm text-zinc-300 flex-1">Que faire de cette partie ?</span>
+              <Button size="sm" variant="secondary" onClick={() => setShowLeaderboard(true)}>
+                Voir le classement
+              </Button>
               <Button size="sm" variant="outline" onClick={putBackInReserve}>
                 Remettre en réserve
               </Button>

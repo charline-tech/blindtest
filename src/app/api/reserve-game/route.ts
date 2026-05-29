@@ -14,6 +14,8 @@ export async function POST(req: NextRequest) {
 
   const { gameId, leaderboard } = await req.json()
 
+  const { data: game } = await service.from('games').select('name').eq('id', gameId).single()
+
   // Save results to archives if there are players
   if (leaderboard.length > 0) {
     await service.from('game_archives').insert({
@@ -22,6 +24,12 @@ export async function POST(req: NextRequest) {
       winners_json: leaderboard.slice(0, 3),
       full_results_json: leaderboard,
     })
+
+    fetch(`${req.nextUrl.origin}/api/send-results`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ gameName: game?.name ?? 'Blind Test', leaderboard }),
+    }).catch(() => {})
   }
 
   // Get question IDs to delete associated answers
