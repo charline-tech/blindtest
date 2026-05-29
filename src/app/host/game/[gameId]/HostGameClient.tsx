@@ -341,9 +341,6 @@ export function HostGameClient({
           {endFlow === 'choose' && !archived && (
             <div className="flex items-center gap-3 p-3 bg-zinc-800 border border-zinc-600 rounded-lg flex-wrap">
               <span className="text-sm text-zinc-300 flex-1">Que faire de cette partie ?</span>
-              <Button size="sm" variant="secondary" onClick={() => setShowLeaderboard(true)}>
-                Voir le classement
-              </Button>
               <Button size="sm" variant="outline" onClick={putBackInReserve}>
                 Remettre en réserve
               </Button>
@@ -393,7 +390,14 @@ export function HostGameClient({
         </div>
 
         <div>
-          <h2 className="font-bold mb-3">Classement</h2>
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="font-bold">Classement</h2>
+            {leaderboard.length > 0 && (
+              <Button size="sm" variant="secondary" className="h-7 text-xs" onClick={() => setShowLeaderboard(true)}>
+                Plein écran
+              </Button>
+            )}
+          </div>
           <div className="space-y-1">
             {leaderboard.slice(0, 10).map((p, i) => (
               <div key={p.playerId} className="flex items-center gap-2 p-2 bg-zinc-900 rounded text-sm">
