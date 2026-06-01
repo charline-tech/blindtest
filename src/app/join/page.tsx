@@ -63,6 +63,17 @@ export default function JoinPage() {
       .single()
 
     if (insertError?.code === '23505') {
+      // Joueur déjà inscrit — récupérer son ID et le reconnecter
+      const { data: existing } = await supabase
+        .from('players')
+        .select('id')
+        .eq('game_id', gameId)
+        .eq('email', email.trim().toLowerCase())
+        .single()
+      if (existing) {
+        router.push(`/play/${gameId}?pid=${existing.id}`)
+        return
+      }
       setError('Cette adresse email est déjà utilisée dans cette partie.')
       setLoading(false)
       return
