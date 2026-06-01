@@ -236,7 +236,7 @@ export function PlayClient({ gameId, playerId }: { gameId: string; playerId: str
                 letterSpacing: '0.08em',
               }}
             >
-              {myAnswer.is_correct ? 'BONNE RÉPONSE !' : 'PAS TOUT À FAIT…'}
+              {myAnswer.is_correct ? 'BONNE RÉPONSE !' : 'PAS DE CHANCE, C\'EST RATÉ !'}
             </div>
             <p style={{ color: '#7A5030', fontSize: '0.95rem' }}>
               Votre réponse :{' '}
