@@ -28,7 +28,7 @@ export default function JoinPage() {
     supabase
       .from('games')
       .select('id')
-      .eq('status', 'lobby')
+      .in('status', ['lobby', 'question_open', 'reveal'])
       .order('created_at', { ascending: false })
       .limit(1)
       .single()
